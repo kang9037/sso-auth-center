@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSO 인증 센터</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <img src="../../쌤공로고 편집본.png" alt="로고" class="auth-logo">
+                <h1>SSO 인증 센터</h1>
+                <p>하나의 계정으로 모든 서비스 이용</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h2>로그인</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginEmail">아이디</label>
+                        <input type="text" id="loginEmail" required placeholder="아이디를 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">비밀번호</label>
+                        <input type="password" id="loginPassword" required placeholder="비밀번호를 입력하세요">
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">로그인 상태 유지</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">로그인</button>
+                </form>
+                <div class="form-footer">
+                    <p>계정이 없으신가요? <a href="#" id="showSignup">회원가입</a></p>
+                    <div style="margin-top: 16px; display: flex; justify-content: center; gap: 16px;">
+                        <a href="#" id="showFindId" style="font-size: 14px;">아이디 찾기</a>
+                        <span style="color: #E5E7EB;">|</span>
+                        <a href="#" id="showForgotPassword" style="font-size: 14px;">비밀번호 찾기</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="auth-form" style="display: none;">
+                <h2>회원가입</h2>
+                <form id="signupFormElement">
+                    <div class="form-group">
+                        <label for="signupEmail">아이디</label>
+                        <input type="text" id="signupEmail" required placeholder="사용할 아이디 입력">
+                        <small>4자 이상의 아이디를 입력하세요</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">비밀번호</label>
+                        <input type="password" id="signupPassword" required placeholder="비밀번호 입력">
+                        <small>4자리 이상의 비밀번호를 입력하세요</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPasswordConfirm">비밀번호 확인</label>
+                        <input type="password" id="signupPasswordConfirm" required placeholder="비밀번호 다시 입력">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupName">이름</label>
+                        <input type="text" id="signupName" required placeholder="실명 또는 닉네임">
+                    </div>
+                    <div class="form-group">
+                        <label for="accountType">계정 유형</label>
+                        <select id="accountType" required>
+                            <option value="student">학생</option>
+                            <option value="teacher">교사</option>
+                            <option value="parent">학부모</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <label for="agreeTerms">이용약관 및 개인정보처리방침에 동의합니다</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">회원가입</button>
+                </form>
+                <div class="form-footer">
+                    <p>이미 계정이 있으신가요? <a href="#" id="showLogin">로그인</a></p>
+                </div>
+            </div>
+
+            <!-- Password Reset Form -->
+            <div id="forgotPasswordForm" class="auth-form" style="display: none;">
+                <h2>비밀번호 찾기</h2>
+                <form id="forgotPasswordFormElement">
+                    <div class="form-group">
+                        <label for="resetEmail">아이디</label>
+                        <input type="text" id="resetEmail" required placeholder="아이디 입력">
+                        <small>가입하신 아이디를 입력하면 비밀번호를 초기화합니다</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">재설정 링크 전송</button>
+                </form>
+                <div class="form-footer">
+                    <p><a href="#" id="backToLogin">로그인으로 돌아가기</a></p>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>처리 중...</p>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="messageContainer" class="message-container"></div>
+            
+            <!-- Dashboard (로그인 후 표시) -->
+            <div id="dashboardView" class="auth-form" style="display: none;">
+                <h2>환영합니다, <span id="userName"></span>님!</h2>
+                <p class="dashboard-info">SSO 인증이 완료되었습니다. 아래 서비스를 선택하여 이동하세요.</p>
+                
+                <div class="connected-services">
+                    <h3>연동된 서비스</h3>
+                    <div class="service-list">
+                        <button class="service-button" data-service="quiz">
+                            <span class="service-icon">📚</span>
+                            <div class="service-details">
+                                <span class="service-name">AI 퀴즈 학습</span>
+                                <span class="service-desc">인공지능 기반 학습 퀴즈</span>
+                            </div>
+                        </button>
+                        <button class="service-button" data-service="study">
+                            <span class="service-icon">📖</span>
+                            <div class="service-details">
+                                <span class="service-name">스터디 플래너</span>
+                                <span class="service-desc">학습 계획 관리 도구</span>
+                            </div>
+                        </button>
+                        <button class="service-button" data-service="community">
+                            <span class="service-icon">👥</span>
+                            <div class="service-details">
+                                <span class="service-name">쌤공 커뮤니티</span>
+                                <span class="service-desc">교육 커뮤니티 플랫폼</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="dashboard-footer">
+                    <button id="logoutBtn" class="btn btn-secondary">로그아웃</button>
+                    <button id="accountSettingsBtn" class="btn btn-outline">계정 설정</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Links (로그인 전에는 숨김) -->
+        <div id="serviceLinksSection" class="service-links" style="display: none;">
+            <h3>연동된 서비스</h3>
+            <div class="service-grid">
+                <a href="#" class="service-link" onclick="return false;">
+                    <div class="service-icon">📚</div>
+                    <span>AI 퀴즈 학습</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 퀴즈 사이트 호환 인증 시스템 -->
+    <script src="auth-compatible.js"></script>
+    <script src="auth-new.js"></script>
+</body>
+</html>

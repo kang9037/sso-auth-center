@@ -1,0 +1,63 @@
+{
+  "name": "sso-auth-center",
+  "version": 2,
+  "builds": [
+    {
+      "src": "auth-server/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "auth-server/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "auth-server/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "shared/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "sso-client/*.js",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/auth-server/index.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/auth-server/dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "SUPABASE_URL": "https://syhgibrayncezgljxdzs.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5aGdpYnJheW5jZXpnbGp4ZHpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3Nzk0NTMsImV4cCI6MjA2OTM1NTQ1M30.PdzNh6stgZwobuSAGSK_z6Hn98-VsaU44ldTWrM6szk"
+  }
+}

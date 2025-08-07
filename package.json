@@ -1,0 +1,22 @@
+{
+  "name": "sso-system",
+  "version": "1.0.0",
+  "description": "Single Sign-On System with Supabase",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx live-server --port=3000 --host=localhost",
+    "dev:auth": "npx live-server auth-server --port=3001 --host=localhost",
+    "dev:service1": "npx live-server service-1 --port=3002 --host=localhost",
+    "dev:service2": "npx live-server service-2 --port=3003 --host=localhost",
+    "dev:service3": "npx live-server service-3 --port=3004 --host=localhost"
+  },
+  "keywords": ["sso", "authentication", "supabase"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

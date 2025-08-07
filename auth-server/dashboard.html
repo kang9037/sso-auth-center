@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSO Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <img src="c:\Users\kangd\OneDrive - 부산광역시교육청\바탕 화면\내 명함\쌤공로고 편집본.png" alt="로고" class="auth-logo">
+                <h1>SSO Dashboard</h1>
+                <p>통합 인증 관리</p>
+            </div>
+            
+            <div class="dashboard">
+                <div class="user-info">
+                    <h3>사용자 정보</h3>
+                    <p><strong>이메일:</strong> <span id="userEmail">-</span></p>
+                    <p><strong>이름:</strong> <span id="userName">-</span></p>
+                    <p><strong>ID:</strong> <span id="userId">-</span></p>
+                    <p><strong>로그인 시간:</strong> <span id="loginTime">-</span></p>
+                    
+                    <div class="token-info">
+                        <strong>Access Token (일부):</strong>
+                        <div id="tokenPreview">-</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px;">
+                    <button id="logoutBtn" class="btn btn-primary">로그아웃</button>
+                    <button id="logoutAllBtn" class="btn btn-secondary" style="margin-top: 12px;">모든 기기에서 로그아웃</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="service-links">
+            <h3>연동된 서비스로 이동</h3>
+            <p style="color: #6B7280; font-size: 14px; margin-bottom: 16px;">
+                아래 서비스들은 자동으로 로그인됩니다
+            </p>
+            <div class="service-grid">
+                <!-- AI 퀴즈 서비스 링크 - 동적으로 생성됨 -->
+                <a href="#" id="quizServiceLink" class="service-link">
+                    <div class="service-icon">🎯</div>
+                    <span>AI 퀴즈</span>
+                </a>
+                <a href="#" id="service2Link" class="service-link">
+                    <div class="service-icon">💼</div>
+                    <span>서비스 2</span>
+                </a>
+                <a href="#" id="service3Link" class="service-link">
+                    <div class="service-icon">🎮</div>
+                    <span>서비스 3</span>
+                </a>
+            </div>
+            
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+                <h4 style="margin-bottom: 12px;">활성 세션</h4>
+                <div id="activeSessions">
+                    <p style="color: #6B7280; font-size: 14px;">로딩 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        import config from '../shared/config.js';
+        
+        const supabase = createClient(config.supabase.url, config.supabase.anonKey);
+        
+        // Quiz 서비스 URL 설정 (개발/운영 환경 구분)
+        const QUIZ_SERVICE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000'  // quiz 사이트가 실행되는 포트
+            : 'https://quiz-liart-ten.vercel.app';  // Vercel 배포 URL
+        
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Display user info
+            const user = session.user;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userName').textContent = user.user_metadata?.name || user.email.split('@')[0];
+            document.getElementById('userId').textContent = user.id;
+            document.getElementById('loginTime').textContent = new Date(session.created_at).toLocaleString('ko-KR');
+            
+            // Display token preview
+            const token = localStorage.getItem(config.sso.tokenKey);
+            if (token) {
+                document.getElementById('tokenPreview').textContent = token.substring(0, 50) + '...';
+            }
+            
+            // SSO 링크 설정
+            setupSSOLinks(user, token || session.access_token);
+            
+            // Update active sessions
+            updateActiveSessions();
+        }
+        
+        // SSO 링크 설정 함수
+        function setupSSOLinks(user, token) {
+            // 사용자 정보 준비
+            const userData = {
+                id: user.id,
+                email: user.email,
+                name: user.user_metadata?.name || user.email.split('@')[0],
+                accountType: user.user_metadata?.accountType || 'student',
+                role: user.user_metadata?.role || 'user'
+            };
+            
+            // Base64 인코딩 (한글 처리)
+            const encodedUser = btoa(encodeURIComponent(JSON.stringify(userData)));
+            
+            // Quiz 서비스 링크 설정 - explore.html로 직접 이동
+            const quizLink = document.getElementById('quizServiceLink');
+            if (quizLink) {
+                quizLink.href = `${QUIZ_SERVICE_URL}/explore.html?sso_token=${encodeURIComponent(token)}&sso_user=${encodedUser}`;
+            }
+            
+            // 다른 서비스 링크들도 동일하게 설정 가능
+            const service2Link = document.getElementById('service2Link');
+            if (service2Link) {
+                service2Link.href = `http://localhost:3003?sso_token=${encodeURIComponent(token)}&sso_user=${encodedUser}`;
+            }
+            
+            const service3Link = document.getElementById('service3Link');
+            if (service3Link) {
+                service3Link.href = `http://localhost:3004?sso_token=${encodeURIComponent(token)}&sso_user=${encodedUser}`;
+            }
+        }
+        
+        function updateActiveSessions() {
+            const sessions = [];
+            
+            // Check for tokens in localStorage
+            if (localStorage.getItem(config.sso.tokenKey)) {
+                sessions.push({
+                    service: 'Auth Server',
+                    status: 'Active',
+                    time: new Date().toLocaleTimeString('ko-KR')
+                });
+            }
+            
+            const sessionsHtml = sessions.map(s => `
+                <div style="background: #F3F4F6; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px;">
+                    <strong>${s.service}</strong> - ${s.status}
+                    <br><small style="color: #6B7280;">${s.time}</small>
+                </div>
+            `).join('');
+            
+            document.getElementById('activeSessions').innerHTML = sessionsHtml || '<p style="color: #6B7280; font-size: 14px;">활성 세션 없음</p>';
+        }
+        
+        // Logout handlers
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await supabase.auth.signOut();
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('로그아웃 중 오류가 발생했습니다.');
+            }
+        });
+        
+        document.getElementById('logoutAllBtn').addEventListener('click', async () => {
+            if (confirm('모든 기기에서 로그아웃하시겠습니까?')) {
+                try {
+                    await supabase.auth.signOut({ scope: 'global' });
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Global logout error:', error);
+                    alert('로그아웃 중 오류가 발생했습니다.');
+                }
+            }
+        });
+        
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
